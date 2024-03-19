@@ -1,0 +1,136 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	'populate hook	
+	F.Intrinsic.Control.Case(11560)
+		V.Passed.GAB-LBL-1.Set("Truck Load")
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PL",465)
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PT",543)
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PW",70)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PL",465)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PT",526)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PW",70)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"LOCK",0)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"HIDE",0)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-LBL-1,"HIDE",0)
+		
+	'ord Selected hook
+	F.Intrinsic.Control.Case(11565)
+		F.Intrinsic.String.Build("Select * From GCG_6583_Ord_Header Where Order_No ='{0}'",V.Passed.000003.Format*00000000,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("TruckLoad","con",V.Local.sSql,True)
+
+		F.Intrinsic.Control.If(V.DataTable.TruckLoad.RowCount--,<>,-1)
+			V.Passed.GAB-TEXT-1.Set(V.DataTable.TruckLoad(0).Truck_Load!FieldValTrim)
+		F.Intrinsic.Control.Else
+			V.Passed.GAB-TEXT-1.Set("")
+		F.Intrinsic.Control.EndIf
+
+		F.Data.DataTable.Close("TruckLoad")	
+
+	'pre delete hook
+	F.Intrinsic.Control.Case(11881)
+		F.Intrinsic.String.Build("Select * From GCG_6583_Ord_Header Where Order_No ='{0}'",V.Passed.000003.Format*00000000,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("TruckLoad","con",V.Local.sSql,True)
+
+		F.Data.DataTable.DeleteRow("TruckLoad")
+
+		F.Data.DataTable.SaveToDB("TruckLoad","con","GCG_6583_Ord_Header","Order_No")
+
+		F.Data.DataTable.Close("TruckLoad")
+
+		F.Intrinsic.Control.CallSub(exit)
+
+	'Post Save Hook
+	F.Intrinsic.Control.Case(11872)
+		F.Intrinsic.String.Build("Select * From GCG_6583_Ord_Header Where Order_No ='{0}'",V.Passed.000003.Format*00000000,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("TruckLoad","con",V.Local.sSql,True)
+
+		F.Intrinsic.Control.If(V.DataTable.TruckLoad.RowCount--,=,-1)
+			F.Data.DataTable.AddRow("TruckLoad","Order_No",V.Passed.000003.Format*00000000,"Truck_Load",V.Passed.GAB-Text-1)
+		F.Intrinsic.Control.Else
+			F.Data.DataTable.SetValue("TruckLoad",0,"Truck_Load",V.Passed.GAB-Text-1)
+		F.Intrinsic.Control.EndIf
+
+		F.Data.DataTable.SaveToDB("TruckLoad","con","GCG_6583_Ord_Header","Order_No")
+
+		F.Data.DataTable.Close("TruckLoad")
+
+		F.Intrinsic.Control.CallSub(exit)
+
+	'clear hook
+	F.Intrinsic.Control.Case(11875)
+		V.Passed.GAB-TEXT-1.Set("")
+
+	F.Intrinsic.Control.Case(13580)
+		V.Passed.GAB-LBL-1.Set("Truck Load")
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PL",720)
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PT",38)
+		F.Intrinsic.Variable.SetProperty("GAB-TEXT-1","PW",70)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PL",720)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PT",20)
+		F.Intrinsic.Variable.SetProperty("GAB-LBL-1","PW",70)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"LOCK",0)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1,"HIDE",0)
+		F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-LBL-1,"HIDE",0)
+		
+		F.Intrinsic.String.Build("Select * From GCG_6583_Ord_Header Where Order_No ='{0}'",V.Passed.000194.Format*00000000,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("TruckLoad","con",V.Local.sSql,True)
+
+		F.Intrinsic.Control.If(V.DataTable.TruckLoad.RowCount--,=,-1)
+			V.Passed.GAB-Text-1.Set("")
+		F.Intrinsic.Control.Else
+			V.Passed.GAB-Text-1.Set(V.DataTable.TruckLoad(V.DataTable.TruckLoad.RowCount--).Truck_Load!FieldValTrim)
+		F.Intrinsic.Control.EndIf
+		
+		F.Data.DataTable.Close("TruckLoad")
+		
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_6583_Order_Header.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+
+Program.Sub.Exit.Start
+F.Intrinsic.Control.SetErrorHandler("Exit_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+'closing connection
+F.ODBC.Connection!Con.Close
+'ending program
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Exit_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Exit.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$RLK$}$2/13/2017 10:56:33 AM$}$False
+Program.Sub.Comments.End
+
+
